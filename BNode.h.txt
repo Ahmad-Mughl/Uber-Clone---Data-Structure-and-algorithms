@@ -1,0 +1,79 @@
+#ifndef BNODE_H
+#define BNODE_H
+
+
+#include <iostream>
+
+using namespace std;
+
+
+template <class T>
+class BNode{
+
+public:
+	BNode(void);
+	BNode(T);
+
+	void setLeftChild(BNode<T>*);
+	BNode<T>* getLeftChild(void);
+
+	void setRightChild(BNode<T>*);
+	BNode<T>* getRightChild(void);
+
+	void setData(T);
+	T getData(void);
+
+private:
+	T data;
+	BNode* leftchild;
+	BNode* rightchild;
+};
+
+template <class T>
+BNode<T>::BNode(T val){
+	data = val;
+	leftchild = NULL;
+	rightchild = NULL;
+}
+
+template <class T>
+BNode<T>::BNode(void){
+	data = 0;
+	leftchild = NULL;
+	rightchild = NULL;
+}
+
+template<class T>
+void BNode<T>::setData(T pdata){
+	data = pdata;
+}
+
+template<class T>
+T BNode<T>::getData(void){
+	return data;
+}
+
+
+template<class T>
+void BNode<T>::setLeftChild(BNode<T> *x){
+	leftchild = x;
+}
+
+template<class T>
+BNode<T>* BNode<T>::getLeftChild(void){
+	return leftchild;
+}
+
+
+template<class T>
+void BNode<T>::setRightChild(BNode<T> *x){
+	rightchild = x;
+}
+
+template<class DT>
+BNode<DT>* BNode<DT>::getRightChild(void){
+	return rightchild;
+}
+
+
+#endif

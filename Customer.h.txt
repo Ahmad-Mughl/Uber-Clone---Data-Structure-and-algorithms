@@ -1,0 +1,167 @@
+#ifndef CUSTOMER_H
+#define CUSTOMER_H
+
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Customer{
+
+public:
+	Customer(void);
+	Customer(string, string, string, string, int);
+
+	void setCNIC(string);
+	string getCNIC(void);
+
+	string get_Name(void);
+	string get_Ph_No(void);
+	string get_Address(void);
+	int get_service_count(void);
+
+	void increment_service_count(void);
+
+	Customer operator= (Customer);
+	bool operator ==(Customer);
+
+	bool operator< (Customer);
+	bool operator> (Customer);
+
+	friend ostream& operator <<(ostream&, Customer);
+	friend ostream& operator<<(ostream&, Customer*);
+
+private:
+	string CNIC;
+	string name;
+	string mobile_no;
+	string address;
+	int service_count;
+};
+
+Customer::Customer(void){
+	CNIC = "";
+	name = "";
+	mobile_no = "";
+	address = "";
+	service_count = 0;
+}
+
+Customer::Customer(string user_cnic, string user_name, string user_phone_no, string user_address, int count){
+	CNIC = user_cnic;
+	name = user_name;
+	mobile_no = user_phone_no;
+	address = user_address;
+	service_count = count;
+}
+
+void Customer::setCNIC(string to_set){
+	CNIC = to_set;
+}
+
+string Customer::getCNIC(void){
+	return CNIC;
+}
+
+string Customer::get_Name(void){
+	return this->name;
+}
+
+string Customer::get_Ph_No(void){
+	return this->mobile_no;
+}
+
+string Customer::get_Address(void){
+	return this->address;
+}
+
+int Customer::get_service_count(void){
+	return this->service_count;
+}
+
+void Customer::increment_service_count(void){
+	this->service_count = this->service_count + 1;
+}
+
+Customer Customer::operator=(Customer same_user){
+	this->CNIC = same_user.CNIC;
+	this->name = same_user.name;
+	this->mobile_no = same_user.mobile_no;
+	this->address = same_user.address;
+	this->service_count = same_user.service_count;
+
+	return same_user;
+}
+
+bool Customer::operator==(Customer user_compare){
+	if (this->CNIC == user_compare.CNIC){
+		return true;
+	}
+	return false;
+}
+
+bool Customer::operator<(Customer user_comp){
+
+	if (this->CNIC < user_comp.CNIC){
+		return true;
+	}
+	return false;
+
+	//this->CNIC.erase(remove(this->CNIC.begin(), this->CNIC.end(), '-'), this->CNIC.end());
+	//user_comp.CNIC.erase(remove(user_comp.CNIC.begin(), user_comp.CNIC.end(), '-'), user_comp.CNIC.end());
+	//
+	//long long int this_cnic = stoll(this->CNIC);	
+	//long long int user_comp_cnic = stoll(user_comp.CNIC);
+
+	//if (this_cnic < user_comp_cnic){
+	//	return true;
+	//}
+	//return false;
+}
+
+bool Customer::operator>(Customer user_comp){
+
+	if (this->CNIC > user_comp.CNIC){
+		return true;
+	}
+	return false;
+
+	//this->CNIC.erase(remove(this->CNIC.begin(), this->CNIC.end(), '-'), this->CNIC.end());
+	//user_comp.CNIC.erase(remove(user_comp.CNIC.begin(), user_comp.CNIC.end(), '-'), user_comp.CNIC.end());
+
+	//long long int this_cnic = stoll(this->CNIC);
+	//long long int user_comp_cnic = stoll(user_comp.CNIC);
+
+	//if (this_cnic > user_comp_cnic){
+	//	return true;
+	//}
+	//return false;
+}
+
+ostream& operator<<(ostream& my_out, Customer user){
+	my_out << endl;
+	my_out << "\tCNIC: " << user.CNIC << endl;
+	my_out << "\tName: " << user.name << endl;
+	my_out << "\tMobile No: " << user.mobile_no << endl;
+	my_out << "\tAddress: " << user.address << endl;
+	my_out << "\tService Utilization Count: " << user.service_count << endl;
+	my_out << endl;
+
+	return my_out;
+}
+
+ostream& operator<<(ostream& my_out, Customer* user){
+	my_out << endl;
+	my_out << "\tCNIC: " << user->CNIC << endl;
+	my_out << "\tName: " << user->name << endl;
+	my_out << "\tMobile No: " << user->mobile_no << endl;
+	my_out << "\tAddress: " << user->address << endl;
+	my_out << "\tService Utilization Count: " << user->service_count << endl;
+	my_out << endl;
+
+	return my_out;
+}
+
+
+
+#endif

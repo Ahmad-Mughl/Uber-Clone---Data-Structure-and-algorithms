@@ -1,0 +1,190 @@
+#ifndef MY_GRAPH_H
+#define MY_GRAPH_H
+
+#include <iostream>
+#include <Windows.h>
+#include <queue>
+
+using namespace std;
+
+
+class my_Graph{//undirected graph
+
+public:
+	//part1: constructor initializes adjacency matrix
+	my_Graph(int);
+
+
+	int get_total_locations(void);	 //part2: returns the number of vertices in the graph
+	int get_total_roads(void);	 //part3: returns the number of edges in the graph
+
+	//part4: inserts edge going from one vertex to another
+	void construct_road(int, int, int);
+	void update_road_distance(int, int, int);
+
+	//part5: removes edge going from one vertex to another
+	void demolish_road(int, int);
+
+	void print_map(void);
+
+	//part6: returns the degree of the node passed
+	int degree(int);
+
+	//part7: outputs the order in which vertices are visited during DFS
+	//Starting from node s.
+	void depthfirstSearch(int s);
+
+	//part8: outputs the order in which vertices are visited during BFS
+	//Starting from node s.
+	void breadthfirstSearch(int s);
+
+	friend vector<int> shortest_path(my_Graph&, int, int, int&);
+
+private:
+	int** matrix;
+	int total_vertices;
+};
+
+my_Graph::my_Graph(int input_vertex){
+	total_vertices = input_vertex;
+	matrix = new int*[input_vertex];
+	for (int i = 0; i < input_vertex; i++){
+		matrix[i] = new int[input_vertex];
+	}
+	for (int i = 0; i < input_vertex; i++){
+		for (int j = 0; j < input_vertex; j++){
+			matrix[i][j] = 0;
+		}
+	}
+}
+
+int my_Graph::get_total_locations(void){
+	return total_vertices;
+}
+
+int my_Graph::get_total_roads(void){
+	int counter = 0;
+	for (int i = 0; i < total_vertices; i++){
+		for (int j = 0; j < total_vertices; j++){
+			if (matrix[i][j] != 0){
+				counter = counter + 1;
+			}
+		}
+	}
+	return counter / 2;
+}
+
+void my_Graph::print_map(void){
+	for (int i = 0; i < total_vertices; i++){
+		for (int j = 0; j < total_vertices; j++){
+			cout << matrix[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
+void my_Graph::construct_road(int from_node, int to_node, int path_weight){
+	if (matrix[from_node][to_node] == 0 && from_node != to_node){
+		matrix[from_node][to_node] = path_weight;
+		matrix[to_node][from_node] = path_weight;
+	}
+	else if (from_node == to_node){
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 4);
+
+		cout << endl;
+		cout << "\t \t \t \t ERROR !! " << endl;
+		cout << "\tYou cannot build on the SAME source and destination location." << endl;
+
+		SetConsoleTextAttribute(hConsole, 7);
+	}
+	else if (matrix[from_node][to_node] != 0){
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+
+		cout << endl;
+		cout << "\t \t \t    ERROR !! " << endl;
+		cout << "\tA road is already built. You cannot build a new one." << endl;
+		cout << "\t \t\tUse the old one" << endl;
+
+		SetConsoleTextAttribute(hConsole, 7);
+	}
+
+}
+
+void my_Graph::update_road_distance(int from_node, int to_node, int path_weight){
+	if (matrix[from_node][to_node] != 0 && from_node != to_node){
+		matrix[from_node][to_node] = path_weight;
+		matrix[to_node][from_node] = path_weight;
+	}
+	else if (from_node == to_node){
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 4);
+
+		cout << endl;
+		cout << "\t \t \t \t ERROR !! " << endl;
+		cout << "\tYou cannot buldoze on the SAME source and destination location." << endl;
+
+		SetConsoleTextAttribute(hConsole, 7);
+	}
+	else if (matrix[from_node][to_node] == 0){
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 4);
+
+		cout << endl;
+		cout << "\t \t \tERROR !! " << endl;
+		cout << "\tThere is no road to your desired location." << endl;
+		cout << "\t\tPlease build the road first" << endl;
+
+		SetConsoleTextAttribute(hConsole, 7);
+	}
+}
+
+void my_Graph::demolish_road(int from_node, int to_node){
+	matrix[from_node][to_node] = 0;
+	matrix[to_node][from_node] = 0;
+}
+
+int my_Graph::degree(int vertex){
+	int vertex_degree = 0;
+	for (int i = 0; i < total_vertices; i++){
+		if (matrix[vertex][i] != 0){
+			vertex_degree = vertex_degree + 1;
+		}
+	}
+	return vertex_degree;
+}
+
+
+void my_Graph::breadthfirstSearch(int start){
+
+	queue<int> q;
+	int i = 0;
+
+	bool* adj = new bool[total_vertices];
+	for (int j = 0; j < total_vertices; j++){
+		adj[j] = false;
+	}
+
+	q.push(start);
+	adj[start] = true;
+
+	while (q.empty() != true){
+
+		i = q.front();
+		cout << i << " ";
+
+		q.pop();
+
+		for (int j = 0; j < total_vertices; j++){
+			if (matrix[i][j] != 0 && adj[j] == false){
+				q.push(j);
+				adj[j] = true;
+			}
+		}
+	}
+}
+
+
+
+#endif

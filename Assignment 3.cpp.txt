@@ -1,0 +1,604 @@
+﻿
+// Author: Arshaq Waseem
+// Roll No: 22L-7697
+
+#include <iostream>
+
+#include <string>
+#include <fstream>
+
+#include <Windows.h>
+#include <stdlib.h>
+
+#include "BinarySearchTree.h"
+#include "Min_Heap.h"
+#include "my_Graph.h"
+#include "Customer.h"
+
+#include <vector>
+
+#include<chrono>
+#include <cwchar>
+#include<thread>
+
+
+using namespace std;
+
+using namespace this_thread;
+using namespace chrono;
+
+
+const int nodes = 40;
+
+vector<Customer> input_data;
+
+string database_file = "a.txt";
+string map_file = "my_map_test.txt";
+
+int index(int* arr, vector<int>& vec, int var){
+	for (auto i : vec){
+		if (arr[i] == var){
+			return i;
+		}
+	}
+	return -1;
+}
+
+int customer_index(vector<Customer> vec, Customer comp){
+	for (int i = 0; i < vec.size(); i++){
+		if (comp == vec[i]){
+			return i;
+		}
+	}
+	return -1;
+}
+
+void update_file(void){
+	ofstream write;
+	write.open(database_file, ios::trunc);
+
+	for (int i = 0; i < input_data.size(); i++){
+		write << input_data[i].getCNIC() << "\t";
+		write << input_data[i].get_Name() << "\t";
+		write << input_data[i].get_Ph_No() << "\t";
+		write << input_data[i].get_Address() << "\t";
+		write << input_data[i].get_service_count() << "\n";
+	}
+	write.close();
+}
+
+
+
+vector<int> shortest_path(my_Graph& my_map, int source, int destination, int& sum_distance){
+
+	const int total_locations = my_map.total_vertices;
+	int start = source;
+
+	int* arr = new int[total_locations];
+	bool* visited = new bool[total_locations];
+	int* prev = new int[total_locations];
+
+
+	for (int i = 0; i < total_locations; i++){
+		visited[i] = false;
+		arr[i] = INT_MAX; //initialize to infinity
+		prev[i] = -1;
+	}
+
+	arr[source] = 0;
+	visited[source] = true;
+
+	for (int i = 0; i < total_locations; i++){
+		Min_Heap<int> f(total_locations);
+		vector<int> vec;
+		for (int j = 0; j < total_locations; j++){
+			if (arr[j] == INT_MAX && my_map.matrix[start][j] != 0){
+				arr[j] = my_map.matrix[start][j] + arr[start];
+				prev[j] = start;
+				f.insert(my_map.matrix[start][j] + arr[start]);
+				vec.push_back(j);
+			}
+			else if (visited[j] != true && my_map.matrix[start][j] != 0){
+				if (my_map.matrix[start][j] + arr[start] < arr[j]){
+					arr[j] = my_map.matrix[start][j] + arr[start];
+					prev[j] = start;
+				}
+				f.insert(arr[j]);
+				vec.push_back(j);
+			}
+		}
+		visited[start] = true;
+		start = index(arr, vec, f.Delete());
+		if (start == -1){
+			break;
+		}
+	}
+
+	vector<int> path;
+	for (int at = destination; at != -1; at = prev[at]) {
+		path.push_back(at);
+	}
+	reverse(path.begin(), path.end());
+
+	int first = path[0];
+	for (auto i : path){
+		sum_distance = sum_distance + my_map.matrix[first][i];
+		first = i;
+	}
+
+	delete[] prev;
+	delete[] visited;
+	delete[] arr;
+
+	prev = NULL;
+	visited = NULL;
+	arr = NULL;
+
+	return path;
+}
+
+
+void read_database(string file_name, BinarySearchTree<Customer>& vec){
+	ifstream read_file;
+	read_file.open(file_name);
+
+	string read_cnic;
+	string read_name;
+	string read_phone_no;
+	string read_address;
+	int read_count;
+
+	while (!read_file.eof()){
+		getline(read_file, read_cnic, '\t');
+		getline(read_file, read_name, '\t');
+		getline(read_file, read_phone_no, '\t');
+		getline(read_file, read_address, '\t');
+		read_file >> read_count;
+		read_file.ignore();
+
+		Customer customer_to_push(read_cnic, read_name, read_phone_no, read_address, read_count);
+		input_data.push_back(customer_to_push);
+		vec.insert(customer_to_push);
+	}
+
+}
+
+bool user_login(BinarySearchTree<Customer>& str, Customer& user){
+
+	BNode<Customer>* check_node;
+
+	try{
+		if (user.getCNIC().size() != 15){
+			exception error;
+			throw error;
+		}
+
+		bool user_found = str.search(user, check_node);
+		if (user_found == false){
+			cout << endl;
+			cout << "\t\t        Hmmmmm....Looks like you're not in our System" << endl;
+			cout << "\t      But that's no Problem.......Sign Up Now and join the Community !!" << endl;
+			cout << endl;
+			system("pause");
+			system("cls");
+			return false;
+		}
+		else if (user_found == true){
+
+			system("cls");
+
+			cout << endl;
+			cout << endl;
+			cout << endl;
+
+			cout << "\t\t\t\t  WELCOME BACK !!!" << endl;
+			cout << "\t\t\t\t      YOU ARE " << endl;
+
+			cout << check_node->getData();
+
+			system("pause");
+			system("cls");
+		}
+		return true;
+	}
+
+	catch (exception){
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 4);
+
+		cout << endl;
+		cout << "\t\t   Invalid Input !!!" << endl;
+		cout << "\t\t  Please Try Again !!!" << endl;
+		system("pause");
+
+		SetConsoleTextAttribute(hConsole, 7);
+		return false;
+	}
+}
+
+void write_new_user(Customer& new_customer){
+
+	ofstream write;
+
+	write.open("user_database.txt", ios::app);
+
+	write << endl;
+	write << new_customer.getCNIC() << "\t";
+	write << new_customer.get_Name() << "\t";
+	write << new_customer.get_Ph_No() << "\t";
+	write << new_customer.get_Address() << "\t";
+	write << new_customer.get_service_count();
+
+	write.flush();
+
+	write.close();
+}
+
+bool sign_up(BinarySearchTree<Customer>& vec){
+
+	string new_user_name = "";
+	string new_user_cnic = "";
+	string new_user_address = "";
+	string new_user_phone = "";
+	int service_count = 0;
+
+	system("cls");
+
+	cout << endl;
+	cout << endl;
+	cout << "\t\t You're One Step Away from Joining the Club !!" << endl;
+	cout << "\t      But first, Let's get to know a little about you :)" << endl;
+	cout << endl;
+	cout << "\t How should we address You: ";
+	cin >> new_user_name;
+	cout << endl;
+	cout << "\t Where do you currently live: ";
+	cin >> new_user_address;
+	cout << endl;
+	cout << "\t On which number should we get in touch: ";
+	cin >> new_user_phone;
+	cout << endl;
+	cout << "\t What is your Citizen Number: ";
+	cin >> new_user_cnic;
+	cout << endl;
+
+	Customer customer_to_push(new_user_cnic, new_user_name, new_user_phone, new_user_address, 0);
+
+	try{
+		exception error;
+		BNode<Customer>* temp;
+		if (new_user_cnic.size() != 15){
+			throw error;
+		}
+		bool is_user = vec.search(customer_to_push, temp);
+		if (is_user == true){
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, 4);
+
+			cout << endl;
+			cout << "\t\t   Your Account Already Exists !!!" << endl;
+			cout << "\t\t Login and Join the Party Once Again !!!" << endl;
+
+			SetConsoleTextAttribute(hConsole, 7);
+			return false;
+		}
+		else if (is_user == false){
+			vec.insert(customer_to_push);
+			input_data.push_back(customer_to_push);
+			write_new_user(customer_to_push);
+
+			cout << "\t\t Congratulations !! You've Just Joined the Family" << endl;
+			cout << "\t Your Account Details are as Follows" << endl;
+			cout << endl;
+			cout << customer_to_push;
+
+			system("pause");
+			return true;
+		}
+	}
+	catch (exception){
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 4);
+
+		cout << endl;
+		cout << "\t\t   Invalid Input !!!" << endl;
+		cout << "\t\t  Please Try Again !!!" << endl;
+
+		SetConsoleTextAttribute(hConsole, 7);
+	}
+
+}
+
+
+bool book_ride(my_Graph& my_map, int& distnace_cal){
+	system("cls");
+	cout << endl;
+	cout << endl;
+
+	cout << "\t        1. Book a Ride" << endl;
+	cout << "\t        2. Logout from this Account	" << endl;
+
+	int user_choice;
+
+	cout << endl;
+	cout << "\t Please Select Your Action: ";
+	cin >> user_choice;
+
+	if (user_choice == 1){
+		cout << endl;
+		system("cls");
+		cout << endl;
+
+		string locations[nodes] = { "Faisal Town", "Johar Town", "Kalma Chowk", "Garden Town",
+			"Forman Christian College", "Ferozpur Road", "Barkat Market", "Cavalry Ground", "DHA",
+			"Gulberg", "Lahore Cantt.", "LUMS", "Paragon City", "Lahore Canal", "Atchison College", "Mall Road",
+			"Askari Towers", "Zaman Park", "Race Course", "Allama Iqbal Airport", "Jallo", "Wagha", "Harbanspura",
+			"Mughalpura", "Garhi Shahu", "Mazang Chungi", "Gawalmandi", "Qila Gujjar Singh", "Samnabad", "Gulshan e Ravi",
+			"Hall Road", "GC Lahore", "Badami Bagh", "Wapda Town", "Valencia", "PIA Housing Scheme", "Township", "Emporium Mall",
+			"Model Town", "Nishtar Town" };
+
+		cout << "\t  We Offer Our Services to the Following Destinations" << endl;
+		cout << endl;
+		for (int i = 1; i < nodes; i++){
+			cout << "\t        " << i << ". " << locations[i] << "        ";
+			if (i % 2 == 0){
+				cout << endl;
+			}
+		}
+
+		int user_dest;
+		cout << endl;
+		cout << endl;
+		cout << "\t  Please Select Your Destination: ";
+		cin >> user_dest;
+		cout << endl;
+
+		system("cls");
+		cout << endl;
+		cout << "\t\t Please Choose Your Transport Type" << endl;
+		cout << "\t        1. AC Car" << endl;
+		cout << "\t        2. Without AC Car" << endl;
+		cout << "\t        3. Motocycle" << endl;
+		cout << "\t        4. Rickshaw" << endl;
+
+		int user_transport;
+
+		cout << endl;
+		cout << "\t\t      Your Choice: ";
+		cin >> user_transport;
+
+		if (user_transport == 1 || user_transport == 2 || user_transport == 3 || user_transport == 4){
+			cout << endl;
+			cout << "\tYour Choice Has been Recorded" << endl;
+		}
+		else{
+			cout << "Your Choice is Invalid. Now you will travel in the AC Car" << endl;
+		}
+		system("pause");
+		if (user_dest > 0 && user_dest <= 39){
+
+			system("cls");
+
+			cout << endl;
+			cout << endl;
+			cout << "\t Give us a Moment" << endl;
+			cout << "\t We Are Finding Drivers for Your Destination" << endl;
+
+			sleep_until(system_clock::now() + seconds(2));
+
+			vector<int> path = shortest_path(my_map, 0, user_dest, distnace_cal);
+
+			if (path.size() == 1 && path[0] == 0) {
+				cout << "\tNo path from " << 0 << " to " << user_dest << endl;
+			}
+			else{
+				cout << endl;
+				cout << "\t   The Following Path Will be the Shortest" << endl;
+				cout << endl;
+				cout << "\t";
+				for (auto i : path){
+					cout << locations[i];
+					if (i != user_dest){
+						cout << " --> ";
+					}
+				}
+				cout << endl;
+				cout << endl;
+			}
+			system("pause");
+			return true;
+		}
+
+	}
+
+	else if (user_choice == 2){
+		cout << endl;
+		cout << "\t\t We are Saving Any Changes You Made" << endl;
+		cout << "\t\t\t This Won't Take Long" << endl;
+		sleep_until(system_clock::now() + seconds(2));
+
+		cout << endl;
+		cout << "\t\t\t    See You Again !!" << endl;
+		cout << endl;
+
+		system("pause");
+		system("cls");
+		return false;
+	}
+}
+
+void read_map(string file_name, my_Graph& new_map){
+	ifstream read;
+
+	read.open(file_name);
+
+	int from;
+	int to;
+	int weight;
+
+	while (!read.eof()){
+		read >> from;
+		read >> to;
+		read >> weight;
+
+		new_map.construct_road(from, to, weight);
+	}
+
+	read.close();
+}
+
+
+void main_interface(my_Graph& my_map, BinarySearchTree<Customer>& database){
+
+MENU:
+
+	system("cls");
+
+	cout << endl;
+	cout << "\t        __________________________________________________________" << endl;
+	cout << "\t       |                                                          |" << endl;
+	cout << "\t\t\t\t   Welcome to Mini_Uber                                        " << endl;
+	cout << "\t       |__________________________________________________________|" << endl;
+
+
+	cout << endl;
+	cout << endl;
+
+	cout << "\t            1. Login to Your Account" << endl;
+	cout << "\t            2. Sign Up for a New Account" << endl;
+	cout << "\t            3. Contact Us/About Us" << endl;
+	cout << "\t            4. Exit" << endl;
+
+	int user_choice;
+
+	cout << endl;
+	cout << "\tHow can we Help You: ";
+	cin >> user_choice;
+
+	if (user_choice == 1){
+
+		string user_input = "";
+
+		system("cls");
+		cout << endl;
+		cout << endl;
+		cout << "\t   Let's See if you Remember Your Login" << endl;
+		cout << endl;
+		cout << "\t\t Username: ";
+		cin >> user_input;
+
+		Customer user_to_check;
+		user_to_check.setCNIC(user_input);
+
+		bool login_status = user_login(database, user_to_check);
+		int cus_index = customer_index(input_data, user_to_check);
+
+		if (login_status == true){
+			int distnace_cal = 0;
+			bool ride_user = book_ride(my_map, distnace_cal);
+			if (ride_user == false){
+				goto MENU;
+			}
+
+
+			else if (ride_user == true){
+				if (input_data[cus_index].get_service_count() >= 5){
+					float price_old_customer = float(distnace_cal * 25);
+					float to_disc = price_old_customer*(0.3);
+					cout << endl;
+					cout << "\tThe Total Fare: Rs." << price_old_customer - to_disc << endl;
+					cout << endl;
+					input_data[cus_index].increment_service_count();
+					update_file();
+				}
+				else if (input_data[cus_index].get_service_count()  < 5){
+					cout << endl;
+					cout << "\tThe Total Fare: Rs." << float(distnace_cal * 25) << endl;
+					cout << endl;
+					input_data[cus_index].increment_service_count();
+					update_file();
+				}
+				system("pause");
+				goto MENU;
+			}
+		}
+		else if (login_status == false){
+			cout << endl;
+			cout << "\t\t        Hmmmmm....Looks like you're not in our System" << endl;
+			cout << "\t      But that's no Problem.......Sign Up Now and join the Community !!" << endl;
+			cout << endl;
+			system("pause");
+			goto MENU;
+		}
+	}
+
+	//sign-up
+	else if (user_choice == 2){
+		bool sign_up_status = sign_up(database);
+
+		if (sign_up_status == true){
+			goto MENU;
+		}
+		else if (sign_up_status == false){
+			goto MENU;
+		}
+	}
+
+	else if (user_choice == 3){
+		system("cls");
+		cout << endl;
+		ifstream read;
+
+		read.open("about_us.txt");
+
+		string var;
+		while (!read.eof()){
+			getline(read, var, '\n');
+			cout << " " << var << endl;
+		}
+		read.close();
+		cout << endl << " ";
+		system("pause");
+		goto MENU;
+	}
+
+	else if (user_choice == 4){
+		cout << endl;
+		cout << "\t\t Thank You For Using Our Service" << endl;
+		cout << "\t\t       Until Next Time !!" << endl;
+		//cout << "\t\t\t في أمان الله" << endl;
+		cout << endl;
+
+		system("pause");
+		exit(0);
+	}
+
+	else{
+		cout << endl;
+		cout << "\t\t   Invalid Input !!!" << endl;
+		cout << "\t\t  Please Try Again !!!" << endl;
+
+		system("pause");
+		goto MENU;
+	}
+}
+
+
+int main(){
+
+	BinarySearchTree<Customer> database;
+	my_Graph my_map(nodes);
+
+	read_database(database_file, database);
+	read_map(map_file, my_map);
+
+	main_interface(my_map, database);
+
+
+	cout << endl;
+	cout << endl;
+
+
+	system("pause");
+	return 0;
+}

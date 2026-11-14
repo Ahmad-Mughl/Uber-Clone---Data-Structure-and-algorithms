@@ -1,0 +1,112 @@
+#ifndef MIN_HEAP_H
+#define MIN_HEAP_H
+
+#include <iostream>
+
+using namespace std;
+
+
+template <class T>
+class Min_Heap{
+
+public:
+	Min_Heap(int);
+	Min_Heap(T*, int);
+
+	void insert(T);
+	T Delete(void);
+
+	bool isEmpty(void);
+
+	void print(void);
+		
+private:
+
+	T* heap_arr;
+	int heap_size;
+	int curr_size;
+
+};
+
+template <class T>
+Min_Heap<T>::Min_Heap(int size){
+	heap_arr = new T[size];
+	curr_size = 0;
+	heap_size = size;
+}
+
+template <class T>
+Min_Heap<T>::Min_Heap(T* arr, int size){
+	heap_arr = new T[size];
+	for (int i = 1; i < size; i++){
+		heap_arr[i] = arr[i];
+	}
+	heap_size = size;
+	curr_size = 0;
+}
+
+template <class T>
+void Min_Heap<T>::insert(T val){
+
+	if (curr_size == heap_size){
+		cout << "Heap is Full" << endl;
+		return;
+	}
+
+	curr_size = curr_size + 1;
+
+	heap_arr[curr_size] = val;
+
+	int k = curr_size;
+	for (int i = curr_size; i > 0; i = i / 2){
+		if (heap_arr[i] > heap_arr[k]){
+			swap(heap_arr[i], heap_arr[k]);
+			k = i;
+		}
+	}
+}
+
+template <class T>
+void Min_Heap<T>::print(void){
+	for (int i = 1; i <= curr_size; i++){
+		cout << heap_arr[i] << " ";
+	}
+}
+
+template <class T>
+T Min_Heap<T>::Delete(void){
+
+	T min_val = heap_arr[1];
+	heap_arr[1] = heap_arr[curr_size];
+
+	heap_arr[curr_size] = 0;
+
+	curr_size = curr_size - 1;
+
+	int k = 1;
+	for (int i = 2; i < curr_size; i = i*2){
+		if (heap_arr[k] > heap_arr[i] && heap_arr[i] < heap_arr[i+1]){
+			swap(heap_arr[k], heap_arr[i]);
+			k = i;
+		}
+		else if (heap_arr[k] > heap_arr[i+1] && heap_arr[i+1] < heap_arr[i]){
+			swap(heap_arr[k], heap_arr[i + 1]);
+			k = i + 1;
+			i++;
+		}
+	}
+
+	return min_val;
+}
+
+template <class T>
+bool Min_Heap<T>::isEmpty(void){
+	if (curr_size == 0){
+		return true;
+	}
+	return false;
+}
+
+
+
+#endif
